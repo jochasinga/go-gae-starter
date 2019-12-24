@@ -1,0 +1,3 @@
+runtime: go113
+env_variables:
+  GIN_MODE: "release"
