@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"time"
 	"log"
@@ -36,14 +37,18 @@ var sampleUsers = []*User{
 
 func createSampleUsers() {
 	for _, user := range sampleUsers {
-		createUser(user)
-		fmt.Printf("user %s created\n", user.Email)
+		if err := CreateUser(user); err != nil {
+			log.Println(err)
+			continue
+		}
+		
+		log.Printf("user %s created\n", user.Email)
 	}
 }
 
-func createUser(u *User) {
+func CreateUser(u *User) error {
 	if userAlreadyExists(u) {
-		return
+		return errors.New("User already existed")
 	}
 
 	_, err := db.Exec(`
@@ -51,8 +56,9 @@ INSERT INTO usr (name, email, phone, created)
 VALUES ($1, $2, $3, $4)
 ;`, u.Name, u.Email, u.Phone, u.Created)
 	if err != nil {
-		log.Fatal(err)
+		return errors.New("Failed to create user")
 	}
+	return nil
 }
 
 func GetUser(u *User) (*User, error) {

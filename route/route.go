@@ -14,6 +14,7 @@ func NewRouter() *gin.Engine {
 	{
 		user := base.Group("/users")
 		user.GET("", handler.GetUsersHandler)
+		user.POST("", handler.CreateUserHandler)
 		user.GET("/:id", handler.GetUserHandler)
 	}
 	return router

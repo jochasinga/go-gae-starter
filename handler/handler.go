@@ -3,6 +3,7 @@ package handler
 import (
 	"strconv"
 	"strings"
+	"time"
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/jochasinga/boo/model"
@@ -94,5 +95,36 @@ func GetUsersHandler(c *gin.Context) {
 		"data": gin.H{
 			"users": users,
 		},
+	})
+}
+
+func CreateUserHandler(c *gin.Context) {
+	u := new(model.User)
+	if err := c.ShouldBindJSON(&u); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	nameMissing := u.Name == ""
+	emailMissing := u.Email == ""
+	if nameMissing || emailMissing {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Missing data: name or email missing",
+		})
+		return
+	}
+
+	u.Created = time.Now()
+	if err := model.CreateUser(u); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"ok": true,
 	})
 }
