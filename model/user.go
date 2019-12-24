@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	id int
+	ID int
 	Name string `json:"name"`
 	Email string `json:"email"`
 	Phone string `json:"phone,omitempty"`
@@ -55,6 +55,24 @@ VALUES ($1, $2, $3, $4)
 	}
 }
 
+func GetUser(u *User) (*User, error) {
+	stmt := fmt.Sprintf(`
+SELECT  id,
+        name,
+        email,
+        phone,
+        created
+FROM    usr
+WHERE   id = $1
+OR      email = $2;`)
+	if err := db.QueryRow(stmt, u.ID, u.Email).Scan(
+		&u.ID, &u.Name, &u.Email, &u.Phone, &u.Created,
+	); err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
 func GetUsers(sorting string, ordering string, limit int) ([]*User, error) {
 	users := []*User{}
 	stmt := fmt.Sprintf(`
@@ -75,7 +93,7 @@ LIMIT     %d
 	for rows.Next() {
 		u := new(User)
 		if err := rows.Scan(
-			&u.id,
+			&u.ID,
 			&u.Name,
 			&u.Email,
 			&u.Phone,
@@ -102,7 +120,7 @@ SELECT EXISTS (
   FROM    usr
   WHERE   id = $1
   OR      email = $2
-);`, u.id, u.Email).Scan(&exists)
+);`, u.ID, u.Email).Scan(&exists)
 	if err != nil {
 		log.Fatal(err)
 	}

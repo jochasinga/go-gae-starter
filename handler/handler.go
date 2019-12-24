@@ -29,8 +29,44 @@ func HelloPostHandler(c *gin.Context) {
 	})
 }
 
-func GetUsersHandler(c *gin.Context) {
+func GetUserHandler(c *gin.Context) {
+	u := new(model.User)
+	email := c.Query("email")
+	if email == "" {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		u.ID = id
+	} else {
+		u.Email = email
+	}
 
+	u, err := model.GetUser(u)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"user": u,
+		},
+	})
+}
+
+func GetUsersHandler(c *gin.Context) {
+	if c.Query("email") != "" {
+		GetUserHandler(c)
+		return
+	}
+	
+	
 	sorting := strings.ToLower(c.Query("sort"))
 	ordering := strings.ToLower(c.Query("ord"))
 	limit, err := strconv.Atoi(c.Query("limit"))
